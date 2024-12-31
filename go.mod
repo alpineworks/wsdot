@@ -1,3 +1,3 @@
-module github.com/michaelpeterswa/go-lib
+module alpineworks.io/wsdot
 
-go 1.18
+go 1.22
