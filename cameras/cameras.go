@@ -63,7 +63,7 @@ func (c *CamerasClient) GetCameras() ([]Camera, error) {
 	}
 
 	q := req.URL.Query()
-	q.Add(wsdot.ParamAccessCode, c.wsdot.ApiKey)
+	q.Add(wsdot.ParamCamerasAccessCodeKey, c.wsdot.ApiKey)
 	req.URL.RawQuery = q.Encode()
 	req.Header.Set("Content-Type", "application/json")
 
@@ -92,7 +92,7 @@ func (c *CamerasClient) GetCamera(cameraID int) (*Camera, error) {
 	}
 
 	q := req.URL.Query()
-	q.Add(wsdot.ParamAccessCode, c.wsdot.ApiKey)
+	q.Add(wsdot.ParamCamerasAccessCodeKey, c.wsdot.ApiKey)
 	q.Add(ParamCameraID, strconv.Itoa(cameraID))
 	req.URL.RawQuery = q.Encode()
 	req.Header.Set("Content-Type", "application/json")
