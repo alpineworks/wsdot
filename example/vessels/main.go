@@ -60,7 +60,7 @@ func main() {
 
 	for _, schedule := range schedules {
 		fmt.Printf("Schedule ID: %d, Route ID: %d, Description: %s\n", schedule.ScheduleID, schedule.RouteID, schedule.Description)
-		allSailings, err := ferriesClient.GetSchedulesTodayByRouteID(schedule.RouteID, true)
+		allSailings, err := ferriesClient.GetSchedulesTodayByRouteID(schedule.RouteID, false)
 		if err != nil {
 			panic(err)
 		}
