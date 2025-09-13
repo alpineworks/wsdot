@@ -1,4 +1,4 @@
-package ferries
+package vessels
 
 import (
 	"encoding/json"
@@ -31,18 +31,18 @@ type VesselBasic struct {
 	OwnedByWSF bool `json:"OwnedByWSF"`
 }
 
-func (f *FerriesClient) GetVesselBasics() ([]VesselBasic, error) {
+func (v *VesselsClient) GetVesselBasics() ([]VesselBasic, error) {
 	req, err := http.NewRequest(http.MethodGet, getVesselBasicsAsJsonURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %v", err)
 	}
 
 	q := req.URL.Query()
-	q.Add(wsdot.ParamFerriesAccessCodeKey, f.wsdot.ApiKey)
+	q.Add(wsdot.ParamFerriesAccessCodeKey, v.wsdot.ApiKey)
 	req.URL.RawQuery = q.Encode()
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := f.wsdot.Client.Do(req)
+	resp, err := v.wsdot.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %v", err)
 	}
@@ -92,18 +92,18 @@ type VesselLocation struct {
 	VesselWatchMsg          string   `json:"VesselWatchMsg"`
 }
 
-func (f *FerriesClient) GetVesselLocations() ([]VesselLocation, error) {
+func (v *VesselsClient) GetVesselLocations() ([]VesselLocation, error) {
 	req, err := http.NewRequest(http.MethodGet, getVesselLocationsAsJsonURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %v", err)
 	}
 
 	q := req.URL.Query()
-	q.Add(wsdot.ParamFerriesAccessCodeKey, f.wsdot.ApiKey)
+	q.Add(wsdot.ParamFerriesAccessCodeKey, v.wsdot.ApiKey)
 	req.URL.RawQuery = q.Encode()
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := f.wsdot.Client.Do(req)
+	resp, err := v.wsdot.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %v", err)
 	}
@@ -119,4 +119,66 @@ func (f *FerriesClient) GetVesselLocations() ([]VesselLocation, error) {
 	}
 
 	return vessels, nil
+}
+
+func (v *VesselsClient) GetVesselBasicByID(vesselID int) (*VesselBasic, error) {
+	url := fmt.Sprintf("%s/%d", getVesselBasicsAsJsonURL, vesselID)
+	
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %v", err)
+	}
+
+	q := req.URL.Query()
+	q.Add(wsdot.ParamFerriesAccessCodeKey, v.wsdot.ApiKey)
+	req.URL.RawQuery = q.Encode()
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := v.wsdot.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error making request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var vessel VesselBasic
+	if err := json.NewDecoder(resp.Body).Decode(&vessel); err != nil {
+		return nil, fmt.Errorf("error decoding response: %v", err)
+	}
+
+	return &vessel, nil
+}
+
+func (v *VesselsClient) GetVesselLocationByID(vesselID int) (*VesselLocation, error) {
+	url := fmt.Sprintf("%s/%d", getVesselLocationsAsJsonURL, vesselID)
+	
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %v", err)
+	}
+
+	q := req.URL.Query()
+	q.Add(wsdot.ParamFerriesAccessCodeKey, v.wsdot.ApiKey)
+	req.URL.RawQuery = q.Encode()
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := v.wsdot.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error making request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var vessel VesselLocation
+	if err := json.NewDecoder(resp.Body).Decode(&vessel); err != nil {
+		return nil, fmt.Errorf("error decoding response: %v", err)
+	}
+
+	return &vessel, nil
 }

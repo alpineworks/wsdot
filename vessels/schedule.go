@@ -1,4 +1,4 @@
-package ferries
+package vessels
 
 import (
 	"encoding/json"
@@ -46,18 +46,18 @@ type ContingencyAdjustment struct {
 	ReplacedBySchedRouteID *int    `json:"ReplacedBySchedRouteID"`
 }
 
-func (f *FerriesClient) GetRouteSchedules() ([]RouteSchedule, error) {
+func (v *VesselsClient) GetRouteSchedules() ([]RouteSchedule, error) {
 	req, err := http.NewRequest(http.MethodGet, getRouteSchedulesAsJsonURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %v", err)
 	}
 
 	q := req.URL.Query()
-	q.Add(wsdot.ParamFerriesAccessCodeKey, f.wsdot.ApiKey)
+	q.Add(wsdot.ParamFerriesAccessCodeKey, v.wsdot.ApiKey)
 	req.URL.RawQuery = q.Encode()
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := f.wsdot.Client.Do(req)
+	resp, err := v.wsdot.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %v", err)
 	}
@@ -143,7 +143,7 @@ type Time struct {
 	AnnotationIndexes        []int      `json:"AnnotationIndexes"`
 }
 
-func (f *FerriesClient) GetSchedulesTodayByRouteID(routeID int, onlyRemainingTimes bool) (*Schedule, error) {
+func (v *VesselsClient) GetSchedulesTodayByRouteID(routeID int, onlyRemainingTimes bool) (*Schedule, error) {
 	url := fmt.Sprintf(getScheduleTodayByRouteIDAsJsonURL, routeID, onlyRemainingTimes)
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -152,11 +152,11 @@ func (f *FerriesClient) GetSchedulesTodayByRouteID(routeID int, onlyRemainingTim
 	}
 
 	q := req.URL.Query()
-	q.Add(wsdot.ParamFerriesAccessCodeKey, f.wsdot.ApiKey)
+	q.Add(wsdot.ParamFerriesAccessCodeKey, v.wsdot.ApiKey)
 	req.URL.RawQuery = q.Encode()
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := f.wsdot.Client.Do(req)
+	resp, err := v.wsdot.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %v", err)
 	}

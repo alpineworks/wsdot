@@ -1,19 +1,19 @@
-package ferries
+package vessels
 
 import (
 	"alpineworks.io/wsdot"
 )
 
-type FerriesClient struct {
+type VesselsClient struct {
 	wsdot *wsdot.WSDOTClient
 }
 
-func NewFerriesClient(wsdotClient *wsdot.WSDOTClient) (*FerriesClient, error) {
+func NewVesselsClient(wsdotClient *wsdot.WSDOTClient) (*VesselsClient, error) {
 	if wsdotClient == nil {
 		return nil, wsdot.ErrNoClient
 	}
 
-	return &FerriesClient{
+	return &VesselsClient{
 		wsdot: wsdotClient,
 	}, nil
 }
