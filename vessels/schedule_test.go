@@ -1,4 +1,4 @@
-package ferries
+package vessels
 
 import (
 	"testing"

@@ -1,4 +1,4 @@
-package cameras
+package traffic
 
 import (
 	"encoding/json"
@@ -16,19 +16,6 @@ const (
 	ParamCameraID = "CameraID"
 )
 
-type CamerasClient struct {
-	wsdot *wsdot.WSDOTClient
-}
-
-func NewCamerasClient(wsdotClient *wsdot.WSDOTClient) (*CamerasClient, error) {
-	if wsdotClient == nil {
-		return nil, wsdot.ErrNoClient
-	}
-
-	return &CamerasClient{
-		wsdot: wsdotClient,
-	}, nil
-}
 
 type CameraLocation struct {
 	Description any     `json:"Description"`
@@ -56,18 +43,18 @@ type Camera struct {
 	Title            string         `json:"Title"`
 }
 
-func (c *CamerasClient) GetCameras() ([]Camera, error) {
+func (t *TrafficClient) GetCameras() ([]Camera, error) {
 	req, err := http.NewRequest(http.MethodGet, getCamerasAsJsonURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %v", err)
 	}
 
 	q := req.URL.Query()
-	q.Add(wsdot.ParamCamerasAccessCodeKey, c.wsdot.ApiKey)
+	q.Add(wsdot.ParamCamerasAccessCodeKey, t.wsdot.ApiKey)
 	req.URL.RawQuery = q.Encode()
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := c.wsdot.Client.Do(req)
+	resp, err := t.wsdot.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %v", err)
 	}
@@ -85,19 +72,19 @@ func (c *CamerasClient) GetCameras() ([]Camera, error) {
 	return cameras, nil
 }
 
-func (c *CamerasClient) GetCamera(cameraID int) (*Camera, error) {
+func (t *TrafficClient) GetCamera(cameraID int) (*Camera, error) {
 	req, err := http.NewRequest(http.MethodGet, getCameraAsJsonURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %v", err)
 	}
 
 	q := req.URL.Query()
-	q.Add(wsdot.ParamCamerasAccessCodeKey, c.wsdot.ApiKey)
+	q.Add(wsdot.ParamCamerasAccessCodeKey, t.wsdot.ApiKey)
 	q.Add(ParamCameraID, strconv.Itoa(cameraID))
 	req.URL.RawQuery = q.Encode()
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := c.wsdot.Client.Do(req)
+	resp, err := t.wsdot.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %v", err)
 	}
