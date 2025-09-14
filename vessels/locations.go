@@ -4,35 +4,36 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"alpineworks.io/wsdot"
 )
 
 const (
-	getVesselBasicsAsJsonURL    = "https://www.wsdot.wa.gov/Ferries/API/Vessels/rest/vesselbasics"
-	getVesselLocationsAsJsonURL = "https://www.wsdot.wa.gov/Ferries/API/Vessels/rest/vessellocations"
+	getTerminalLocationsURL = "http://www.wsdot.wa.gov/ferries/api/terminals/rest/terminallocations"
 )
 
-type VesselBasic struct {
-	VesselID        int    `json:"VesselID"`
-	VesselSubjectID int    `json:"VesselSubjectID"`
-	VesselName      string `json:"VesselName"`
-	VesselAbbrev    string `json:"VesselAbbrev"`
-	Class           struct {
-		ClassID           int    `json:"ClassID"`
-		ClassSubjectID    int    `json:"ClassSubjectID"`
-		ClassName         string `json:"ClassName"`
-		SortSeq           int    `json:"SortSeq"`
-		DrawingImg        string `json:"DrawingImg"`
-		SilhouetteImg     string `json:"SilhouetteImg"`
-		PublicDisplayName string `json:"PublicDisplayName"`
-	} `json:"Class"`
-	Status     int  `json:"Status"`
-	OwnedByWSF bool `json:"OwnedByWSF"`
+// TerminalLocation represents location information for a terminal
+type TerminalLocation struct {
+	TerminalID     int     `json:"TerminalID"`
+	TerminalName   string  `json:"TerminalName"`
+	TerminalAbbrev string  `json:"TerminalAbbrev"`
+	Latitude       float64 `json:"Latitude"`
+	Longitude      float64 `json:"Longitude"`
+	AddressLineOne string  `json:"AddressLineOne"`
+	AddressLineTwo string  `json:"AddressLineTwo"`
+	City           string  `json:"City"`
+	State          string  `json:"State"`
+	ZipCode        string  `json:"ZipCode"`
+	Country        string  `json:"Country"`
+	MapLink        string  `json:"MapLink"`
+	DispGISLat     float64 `json:"DispGISLat"`
+	DispGISLong    float64 `json:"DispGISLong"`
 }
 
-func (v *VesselsClient) GetVesselBasics() ([]VesselBasic, error) {
-	req, err := http.NewRequest(http.MethodGet, getVesselBasicsAsJsonURL, nil)
+// GetTerminalLocations retrieves location information for all terminals
+func (v *VesselsClient) GetTerminalLocations() ([]TerminalLocation, error) {
+	req, err := http.NewRequest(http.MethodGet, getTerminalLocationsURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %v", err)
 	}
@@ -52,78 +53,18 @@ func (v *VesselsClient) GetVesselBasics() ([]VesselBasic, error) {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	var vessels []VesselBasic
-	if err := json.NewDecoder(resp.Body).Decode(&vessels); err != nil {
+	var locations []TerminalLocation
+	if err := json.NewDecoder(resp.Body).Decode(&locations); err != nil {
 		return nil, fmt.Errorf("error decoding response: %v", err)
 	}
 
-	return vessels, nil
+	return locations, nil
 }
 
-type VesselLocation struct {
-	VesselID                int      `json:"VesselID"`
-	VesselName              string   `json:"VesselName"`
-	Mmsi                    int      `json:"Mmsi"`
-	DepartingTerminalID     int      `json:"DepartingTerminalID"`
-	DepartingTerminalName   string   `json:"DepartingTerminalName"`
-	DepartingTerminalAbbrev string   `json:"DepartingTerminalAbbrev"`
-	ArrivingTerminalID      int      `json:"ArrivingTerminalID"`
-	ArrivingTerminalName    string   `json:"ArrivingTerminalName"`
-	ArrivingTerminalAbbrev  string   `json:"ArrivingTerminalAbbrev"`
-	Latitude                float64  `json:"Latitude"`
-	Longitude               float64  `json:"Longitude"`
-	Speed                   float64  `json:"Speed"`
-	Heading                 int      `json:"Heading"`
-	InService               bool     `json:"InService"`
-	AtDock                  bool     `json:"AtDock"`
-	LeftDock                string   `json:"LeftDock"`
-	Eta                     string   `json:"Eta"`
-	EtaBasis                string   `json:"EtaBasis"`
-	ScheduledDeparture      string   `json:"ScheduledDeparture"`
-	OpRouteAbbrev           []string `json:"OpRouteAbbrev"`
-	VesselPositionNum       int      `json:"VesselPositionNum"`
-	SortSeq                 int      `json:"SortSeq"`
-	ManagedBy               int      `json:"ManagedBy"`
-	TimeStamp               string   `json:"TimeStamp"`
-	VesselWatchShutID       int      `json:"VesselWatchShutID"`
-	VesselWatchShutMsg      string   `json:"VesselWatchShutMsg"`
-	VesselWatchShutFlag     string   `json:"VesselWatchShutFlag"`
-	VesselWatchStatus       string   `json:"VesselWatchStatus"`
-	VesselWatchMsg          string   `json:"VesselWatchMsg"`
-}
+// GetTerminalLocationByID retrieves location information for a specific terminal
+func (v *VesselsClient) GetTerminalLocationByID(terminalID int) (*TerminalLocation, error) {
+	url := fmt.Sprintf("%s/%s", getTerminalLocationsURL, strconv.Itoa(terminalID))
 
-func (v *VesselsClient) GetVesselLocations() ([]VesselLocation, error) {
-	req, err := http.NewRequest(http.MethodGet, getVesselLocationsAsJsonURL, nil)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %v", err)
-	}
-
-	q := req.URL.Query()
-	q.Add(wsdot.ParamFerriesAccessCodeKey, v.wsdot.ApiKey)
-	req.URL.RawQuery = q.Encode()
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := v.wsdot.Client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("error making request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
-
-	var vessels []VesselLocation
-	if err := json.NewDecoder(resp.Body).Decode(&vessels); err != nil {
-		return nil, fmt.Errorf("error decoding response: %v", err)
-	}
-
-	return vessels, nil
-}
-
-func (v *VesselsClient) GetVesselBasicByID(vesselID int) (*VesselBasic, error) {
-	url := fmt.Sprintf("%s/%d", getVesselBasicsAsJsonURL, vesselID)
-	
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %v", err)
@@ -144,41 +85,10 @@ func (v *VesselsClient) GetVesselBasicByID(vesselID int) (*VesselBasic, error) {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	var vessel VesselBasic
-	if err := json.NewDecoder(resp.Body).Decode(&vessel); err != nil {
+	var location TerminalLocation
+	if err := json.NewDecoder(resp.Body).Decode(&location); err != nil {
 		return nil, fmt.Errorf("error decoding response: %v", err)
 	}
 
-	return &vessel, nil
-}
-
-func (v *VesselsClient) GetVesselLocationByID(vesselID int) (*VesselLocation, error) {
-	url := fmt.Sprintf("%s/%d", getVesselLocationsAsJsonURL, vesselID)
-	
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %v", err)
-	}
-
-	q := req.URL.Query()
-	q.Add(wsdot.ParamFerriesAccessCodeKey, v.wsdot.ApiKey)
-	req.URL.RawQuery = q.Encode()
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := v.wsdot.Client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("error making request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
-
-	var vessel VesselLocation
-	if err := json.NewDecoder(resp.Body).Decode(&vessel); err != nil {
-		return nil, fmt.Errorf("error decoding response: %v", err)
-	}
-
-	return &vessel, nil
+	return &location, nil
 }

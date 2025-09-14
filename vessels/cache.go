@@ -5,27 +5,19 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"alpineworks.io/wsdot"
 )
 
 const (
-	getCacheFlushDateAsJsonURL = "https://www.wsdot.wa.gov/Ferries/API/Vessels/rest/cacheflushdate"
+	getFaresCacheFlushDateURL = "http://www.wsdot.wa.gov/ferries/api/fares/rest/cacheflushdate"
 )
 
-type CacheFlushDate struct {
-	CacheFlushDate string `json:"CacheFlushDate"`
-}
-
+// GetCacheFlushDate retrieves the fares cache flush date
 func (v *VesselsClient) GetCacheFlushDate() (*time.Time, error) {
-	req, err := http.NewRequest(http.MethodGet, getCacheFlushDateAsJsonURL, nil)
+	req, err := http.NewRequest(http.MethodGet, getFaresCacheFlushDateURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %v", err)
 	}
 
-	q := req.URL.Query()
-	q.Add(wsdot.ParamFerriesAccessCodeKey, v.wsdot.ApiKey)
-	req.URL.RawQuery = q.Encode()
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := v.wsdot.Client.Do(req)
@@ -38,16 +30,20 @@ func (v *VesselsClient) GetCacheFlushDate() (*time.Time, error) {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	var cacheFlushDate CacheFlushDate
-	if err := json.NewDecoder(resp.Body).Decode(&cacheFlushDate); err != nil {
+	var dateStr string
+	if err := json.NewDecoder(resp.Body).Decode(&dateStr); err != nil {
 		return nil, fmt.Errorf("error decoding response: %v", err)
 	}
 
-	// Parse the WSDOT time string format
-	parsedTime, err := wsdotTimeStringToTime(cacheFlushDate.CacheFlushDate)
+	// Parse the date string - assuming standard ISO format or custom format
+	parsedTime, err := time.Parse(time.RFC3339, dateStr)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing cache flush date: %v", err)
+		// Try alternative format if RFC3339 fails
+		parsedTime, err = time.Parse("2006-01-02T15:04:05", dateStr)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing date: %v", err)
+		}
 	}
 
-	return parsedTime, nil
+	return &parsedTime, nil
 }

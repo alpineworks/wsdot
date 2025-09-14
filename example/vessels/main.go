@@ -70,53 +70,53 @@ func main() {
 		prettyPrint(cacheDate, *verbose, "Cache Flush Date")
 	}
 
-	// 2. Test Vessel Basics (all vessels)
-	fmt.Println("\n2. Vessel Basics (all):")
-	vesselBasics, err := vesselsClient.GetVesselBasics()
+	// 2. Test Vessel Stats (all vessels)
+	fmt.Println("\n2. Vessel Stats (all):")
+	vesselStats, err := vesselsClient.GetVesselStats()
 	if err != nil {
-		fmt.Printf("Error getting vessel basics: %v\n", err)
-	} else if len(vesselBasics) > 0 {
-		fmt.Printf("Found %d vessels\n", len(vesselBasics))
-		fmt.Printf("First vessel: %s (ID: %d, Class: %s)\n", 
-			vesselBasics[0].VesselName, vesselBasics[0].VesselID, vesselBasics[0].Class.ClassName)
-		prettyPrint(vesselBasics, *verbose, "All Vessel Basics")
-		
-		// 3. Test Vessel Basic by ID (using first vessel)
-		fmt.Println("\n3. Vessel Basic by ID:")
-		vesselBasic, err := vesselsClient.GetVesselBasicByID(vesselBasics[0].VesselID)
+		fmt.Printf("Error getting vessel stats: %v\n", err)
+	} else if len(vesselStats) > 0 {
+		fmt.Printf("Found %d vessels\n", len(vesselStats))
+		fmt.Printf("First vessel: %s (ID: %d, Class: %s)\n",
+			vesselStats[0].VesselName, vesselStats[0].VesselID, vesselStats[0].Class.ClassName)
+		prettyPrint(vesselStats, *verbose, "All Vessel Stats")
+
+		// 3. Test Vessel Stats by ID (using first vessel)
+		fmt.Println("\n3. Vessel Stats by ID:")
+		vesselStat, err := vesselsClient.GetVesselStatsByID(vesselStats[0].VesselID)
 		if err != nil {
-			fmt.Printf("Error getting vessel basic by ID: %v\n", err)
+			fmt.Printf("Error getting vessel stats by ID: %v\n", err)
 		} else {
-			fmt.Printf("Vessel: %s (Owned by WSF: %t)\n", vesselBasic.VesselName, vesselBasic.OwnedByWSF)
-			prettyPrint(vesselBasic, *verbose, "Single Vessel Basic")
+			fmt.Printf("Vessel: %s (Built: %d, Length: %s)\n", vesselStat.VesselName, vesselStat.YearBuilt, vesselStat.Length)
+			prettyPrint(vesselStat, *verbose, "Single Vessel Stats")
 		}
 	}
 
-	// 4. Test Vessel Locations (all vessels)
-	fmt.Println("\n4. Vessel Locations (all):")
-	vesselLocations, err := vesselsClient.GetVesselLocations()
+	// 4. Test Terminal Locations (all terminals)
+	fmt.Println("\n4. Terminal Locations (all):")
+	terminalLocations, err := vesselsClient.GetTerminalLocations()
 	if err != nil {
-		fmt.Printf("Error getting vessel locations: %v\n", err)
-	} else if len(vesselLocations) > 0 {
-		fmt.Printf("Found %d vessel locations\n", len(vesselLocations))
-		for i, loc := range vesselLocations {
+		fmt.Printf("Error getting terminal locations: %v\n", err)
+	} else if len(terminalLocations) > 0 {
+		fmt.Printf("Found %d terminal locations\n", len(terminalLocations))
+		for i, loc := range terminalLocations {
 			if i >= 3 { // Show only first 3 to avoid too much output
-				fmt.Printf("... and %d more vessels\n", len(vesselLocations)-3)
+				fmt.Printf("... and %d more terminals\n", len(terminalLocations)-3)
 				break
 			}
-			fmt.Printf("- %s: %.4f°N, %.4f°W (Speed: %.1f knots)\n", 
-				loc.VesselName, loc.Latitude, loc.Longitude, loc.Speed)
+			fmt.Printf("- %s: %.4f°N, %.4f°W\n",
+				loc.TerminalName, loc.Latitude, loc.Longitude)
 		}
-		
-		// 5. Test Vessel Location by ID (using first vessel)
-		if len(vesselLocations) > 0 {
-			fmt.Println("\n5. Vessel Location by ID:")
-			vesselLocation, err := vesselsClient.GetVesselLocationByID(vesselLocations[0].VesselID)
+
+		// 5. Test Terminal Location by ID (using first terminal)
+		if len(terminalLocations) > 0 {
+			fmt.Println("\n5. Terminal Location by ID:")
+			terminalLocation, err := vesselsClient.GetTerminalLocationByID(terminalLocations[0].TerminalID)
 			if err != nil {
-				fmt.Printf("Error getting vessel location by ID: %v\n", err)
+				fmt.Printf("Error getting terminal location by ID: %v\n", err)
 			} else {
-				fmt.Printf("%s at dock: %t, In service: %t\n", 
-					vesselLocation.VesselName, vesselLocation.AtDock, vesselLocation.InService)
+				fmt.Printf("%s: %s\n",
+					terminalLocation.TerminalName, terminalLocation.TerminalAbbrev)
 			}
 		}
 	}
@@ -145,31 +145,8 @@ func main() {
 		}
 	}
 
-	// 8. Test Vessel Stats (all vessels)
-	fmt.Println("\n8. Vessel Stats (all):")
-	stats, err := vesselsClient.GetVesselStats()
-	if err != nil {
-		fmt.Printf("Error getting vessel stats: %v\n", err)
-	} else if len(stats) > 0 {
-		fmt.Printf("Found %d vessel stats\n", len(stats))
-		fmt.Printf("Example - %s: Built %d, %d HP, %d knots, Fast Ferry: %t\n",
-			stats[0].VesselName, stats[0].YearBuilt, stats[0].Horsepower, 
-			stats[0].SpeedInKnots, stats[0].FastFerry)
-		
-		// 9. Test Vessel Stats by ID
-		fmt.Println("\n9. Vessel Stats by ID:")
-		stat, err := vesselsClient.GetVesselStatsByID(stats[0].VesselID)
-		if err != nil {
-			fmt.Printf("Error getting stats by ID: %v\n", err)
-		} else {
-			fmt.Printf("%s: Length: %s, Beam: %s, Tonnage: %d, Passenger Only: %t\n",
-				stat.VesselName, stat.Length, stat.Beam, stat.Tonnage, stat.PassengerOnly)
-			prettyPrint(stat, *verbose, "Single Vessel Stats (Most Detailed)")
-		}
-	}
-
-	// 10. Test Vessel History (all vessels)
-	fmt.Println("\n10. Vessel History (all):")
+	// 8. Test Vessel History (all vessels)
+	fmt.Println("\n8. Vessel History (all):")
 	history, err := vesselsClient.GetVesselHistory()
 	if err != nil {
 		fmt.Printf("Error getting vessel history: %v\n", err)
@@ -181,25 +158,25 @@ func main() {
 		}
 	}
 
-	// 11. Test Vessel History by Name and Date Range
-	fmt.Println("\n11. Vessel History by Name and Date Range:")
-	if len(vesselBasics) > 0 {
+	// 9. Test Vessel History by Name and Date Range
+	fmt.Println("\n9. Vessel History by Name and Date Range:")
+	if len(vesselStats) > 0 {
 		// Get history for the first vessel from yesterday to today
 		startDate := time.Now().AddDate(0, 0, -1) // Yesterday
 		endDate := time.Now()                     // Today
-		vesselName := vesselBasics[0].VesselName
-		
+		vesselName := vesselStats[0].VesselName
+
 		historyRange, err := vesselsClient.GetVesselHistoryByNameAndDateRange(vesselName, startDate, endDate)
 		if err != nil {
 			fmt.Printf("Error getting vessel history by date range: %v\n", err)
 		} else {
-			fmt.Printf("Found %d records for %s from %s to %s\n", 
+			fmt.Printf("Found %d records for %s from %s to %s\n",
 				len(historyRange), vesselName, startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 		}
 	}
 
-	// 12. Test Route Schedules (Schedule API)
-	fmt.Println("\n12. Route Schedules:")
+	// 10. Test Route Schedules (Schedule API)
+	fmt.Println("\n10. Route Schedules:")
 	schedules, err := vesselsClient.GetRouteSchedules()
 	if err != nil {
 		fmt.Printf("Error getting route schedules: %v\n", err)
@@ -207,8 +184,8 @@ func main() {
 		fmt.Printf("Found %d route schedules\n", len(schedules))
 		fmt.Printf("Example - Route %d: %s\n", schedules[0].RouteID, schedules[0].Description)
 		
-		// 13. Test Schedule Today by Route ID
-		fmt.Println("\n13. Today's Schedule for Route:")
+		// 11. Test Schedule Today by Route ID
+		fmt.Println("\n11. Today's Schedule for Route:")
 		allSailings, err := vesselsClient.GetSchedulesTodayByRouteID(schedules[0].RouteID, false)
 		if err != nil {
 			fmt.Printf("Error getting today's schedule: %v\n", err)

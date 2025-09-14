@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"alpineworks.io/wsdot"
-	"alpineworks.io/wsdot/cameras"
+	"alpineworks.io/wsdot/traffic"
 )
 
 func main() {
@@ -23,14 +23,14 @@ func main() {
 		panic(err)
 	}
 
-	// Create a new Cameras client
-	camerasClient, err := cameras.NewCamerasClient(wsdotClient)
+	// Create a new Traffic client
+	trafficClient, err := traffic.NewTrafficClient(wsdotClient)
 	if err != nil {
 		panic(err)
 	}
 
 	// Get the cameras
-	cameras, err := camerasClient.GetCameras()
+	cameras, err := trafficClient.GetCameras()
 	if err != nil {
 		panic(err)
 	}
@@ -42,7 +42,7 @@ func main() {
 	}
 
 	// Get a specific camera
-	camera, err := camerasClient.GetCamera(cameras[0].CameraID)
+	camera, err := trafficClient.GetCamera(cameras[0].CameraID)
 	if err != nil {
 		panic(err)
 	}

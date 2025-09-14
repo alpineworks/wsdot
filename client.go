@@ -22,6 +22,7 @@ var (
 const (
 	ParamCamerasAccessCodeKey = "AccessCode"
 	ParamFerriesAccessCodeKey = "apiaccesscode"
+	ParamTrafficAccessCodeKey = "AccessCode"
 )
 
 func NewWSDOTClient(options ...WSDOTClientOption) (*WSDOTClient, error) {
